@@ -1,4 +1,6 @@
 class EducationalInstitute < ApplicationRecord
+  has_many :enrolloments
+
   validates :name, presence: true, uniqueness: true
   validates :cnpj, presence: true, uniqueness: true, length: { is: 14 }
   validates :school_type, presence: true, inclusion: { in: ['university', 'school', 'kindergarten'],

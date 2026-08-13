@@ -1,4 +1,6 @@
 class Student < ApplicationRecord
+  has_many :enrolloments
+
   validates :name, presence: true, uniqueness: true
   validates :cpf, presence: true, uniqueness: true, numericality: { only_integer: true }, length: { is: 11 }
     
