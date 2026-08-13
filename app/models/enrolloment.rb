@@ -26,4 +26,3 @@ def create_invoices
   end
 end
 
-def 
