@@ -45,12 +45,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_131307) do
 
   create_table "students", force: :cascade do |t|
     t.decimal "cell_number"
-    t.string "cnpj"
+    t.string "cpf"
     t.datetime "created_at", null: false
     t.date "date_of_birth"
     t.string "gender"
+    t.string "method_of_payment"
     t.string "name"
-    t.string "payment_method"
     t.datetime "updated_at", null: false
   end
 end
