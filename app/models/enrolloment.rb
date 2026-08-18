@@ -8,21 +8,20 @@ class Enrolloment < ApplicationRecord
   validates :invoice_due_date, presence: true
   validates :name_course, presence: true
   validates :student_id, presence: true
-end
 
-after_create :create_invoices
+  after_create :create_invoices
 
-def create_invoices
-  invoice_value = full_price / number_invoices
-  due_date = invoice_due_date
+  def create_invoices
+    invoice_value = full_price / number_invoices
+    due_date = invoice_due_date
 
-  number_invoices.times do |i|
-    Invoice.create!(
-      enrolloment: self,
-      price_invoice: invoice_value,
-      status_invoice: 'aberta',
-      due_date: due_date + i.months
-    )
+    number_invoices.times do |i|
+      Invoice.create!(
+        enrolloment: self,
+        price_invoice: invoice_value,
+        status_invoice: 'aberta',
+        due_date: due_date + i.months
+      )
+    end
   end
 end
-
