@@ -14,4 +14,9 @@ class Student < ApplicationRecord
   normalizes :gender, with: -> gender {gender.strip.downcase}
   normalizes :cpf, with: -> cpf {cpf.strip.downcase.gsub(/[^0-9]/, '')}
   normalizes :name, with: -> name {name.strip.downcase}
+
+  
+
 end
+
+
