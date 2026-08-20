@@ -4,13 +4,14 @@ class EducationalInstitutesController < ApplicationController
   # GET /educational_institutes
   def index
     @educational_institutes = EducationalInstitute.all
+    @educational_institutes = @educational_institutes.where("name LIKE ?", "%#{params[:name].downcase}%") if params[:name].present?
 
     render json: @educational_institutes
   end
 
   # GET /educational_institutes/1
   def show
-    render json: @educational_institute
+    render json: @educational_institute.as_json(include: :students)
   end
 
   # POST /educational_institutes

@@ -3,7 +3,7 @@ class Enrolloment < ApplicationRecord
   belongs_to :educational_institute
   has_many :invoices, dependent: :destroy
 
-  validates :full_price, presence: true, numericality: { only_integer: true }
+  validates :full_price_course, presence: true, numericality: { only_integer: true }
   validates :number_invoices, presence: true, numericality: { only_integer: true }
   validates :invoice_due_date, presence: true
   validates :name_course, presence: true
@@ -12,7 +12,7 @@ class Enrolloment < ApplicationRecord
   after_create :create_invoices
 
   def create_invoices
-    invoice_value = full_price / number_invoices
+    invoice_value = full_price_course / number_invoices
     due_date = invoice_due_date
 
     number_invoices.times do |i|
@@ -20,7 +20,7 @@ class Enrolloment < ApplicationRecord
         enrolloment: self,
         price_invoice: invoice_value,
         status_invoice: 'aberta',
-        due_date: due_date + i.months
+        invoice_due_date: due_date + i.months
       )
     end
   end

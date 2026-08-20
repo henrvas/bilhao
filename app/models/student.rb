@@ -1,5 +1,6 @@
 class Student < ApplicationRecord
   has_many :enrolloments
+  has_many :educational_institutes, through: :enrolloments
 
   validates :name, presence: true, uniqueness: true
   validates :cpf, presence: true, uniqueness: true, numericality: { only_integer: true }, length: { is: 11 }
@@ -15,8 +16,11 @@ class Student < ApplicationRecord
   normalizes :cpf, with: -> cpf {cpf.strip.downcase.gsub(/[^0-9]/, '')}
   normalizes :name, with: -> name {name.strip.downcase}
 
-  
-
+  def imudavel
+    if cpf_changed?
+      errors.add(:cpf, "não pode ser alterado")
+    end
+  end
 end
 
 

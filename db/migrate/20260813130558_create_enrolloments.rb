@@ -5,6 +5,7 @@ class CreateEnrolloments < ActiveRecord::Migration[8.1]
       t.decimal :number_invoices
       t.decimal :invoice_due_date
       t.string :name_course
+      
 
       t.timestamps
     end

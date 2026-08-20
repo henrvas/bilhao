@@ -11,5 +11,11 @@ class EducationalInstitute < ApplicationRecord
   normalizes :school_type, with: -> school_type {school_type.strip.downcase}
   normalizes :name, with: -> name {name.strip.downcase}
   normalizes :status_educational_institute, with: -> status_educational_institute {status_educational_institute.strip.downcase}
+
+  def imudavel
+    if cnpj_chaged?
+      errors.add(:cnpj, "não pode ser alterado")
+    end
+  end
 end
 
