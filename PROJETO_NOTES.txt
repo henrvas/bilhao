@@ -1,0 +1,189 @@
+PROJETO BILLINHO - NOTAS DE PROGRESSO
+Gerado em: 2026-08-20
+Caminho do projeto: /home/henry/bilinho/bilhao
+
+==================================================
+O QUE É O PROJETO
+==================================================
+API Rails (JSON only, ActionController::API) para a empresa "Quero
+Educação" gerenciar mensalidades de alunos pagas a instituições de
+ensino.
+
+Entidades exigidas pelo desafio:
+- Instituição de Ensino: nome (único, not null), CNPJ (só números,
+  único), tipo (Universidade/Escola/Creche)
+- Aluno: nome (único, not null), CPF (só números, único, not null),
+  data de nascimento, telefone celular (inteiro), gênero (M ou F),
+  meio de pagamento (Boleto ou Cartão)
+- Matrícula: valor total do curso (decimal, >0), quantidade de
+  faturas (inteiro, >=1), dia de vencimento das faturas (inteiro,
+  1-31), nome do curso, ID instituição (FK), ID aluno (FK)
+- Fatura: valor (decimal, not null), data de vencimento (not null),
+  ID da matrícula (FK), status (Aberta/Atrasada/Paga, default
+  Aberta)
+
+Restrições extras do desafio:
+- Soma das faturas de uma matrícula = valor total da matrícula
+- Quantidade de faturas da matrícula = quantidade de faturas
+  associadas de fato
+- Regra de data de vencimento: se o "dia de vencimento" recebido for
+  <= dia atual do mês, a 1a fatura cai no mês seguinte; senão, no mês
+  atual. Cada fatura subsequente soma 1 mês à anterior.
+  Exemplo: hoje 15/08/2018, dia_vencimento=10, valor=2000, qtd=5 ->
+  faturas de R$400 vencendo em 10/09, 10/10, 10/11, 10/12, 10/01/2019.
+
+Ações mínimas exigidas pela API:
+- Listar e criar Instituição de Ensino
+- Listar e criar Aluno
+- Listar e criar Matrícula (cria as Faturas automaticamente)
+- Listar Faturas
+
+==================================================
+ESTADO ATUAL DO CÓDIGO (o que já existe)
+==================================================
+Models: Student, EducationalInstitute, Enrolloment, Invoice
+Controllers: students, educational_institutes, enrolloments, invoices
+(todos com CRUD completo via resources, não só o mínimo do desafio)
+Tem também um model/controller "Produtos" que é sobra de scaffold,
+não faz parte do domínio do desafio.
+
+Rotas: config/routes.rb com resources para todos os 5 (invoices,
+enrolloments, students, educational_institutes, produtos).
+
+==================================================
+BUGS JÁ CORRIGIDOS NESTA CONVERSA
+==================================================
+1. Student e EducationalInstitute usavam "normalize" (Rails 7-) em vez
+   de "normalizes" (Rails 8) -> NoMethodError ao carregar a classe.
+   CORRIGIDO nos dois models.
+2. students_controller.rb permitia :cnpj e :payment_method nos
+   params, mas o model usa :cpf e :method_of_payment.
+   CORRIGIDO (usuário ajustou manualmente).
+3. Migration create_students criava colunas cnpj/payment_method
+   (nomes errados). Migration corrigida para cpf/method_of_payment e
+   rodada de novo com `db:migrate:redo`.
+4. Enrolloment.rb tinha "after_create :create_invoices" e o método
+   create_invoices FORA da classe (o `end` da classe estava antes
+   dessas linhas) -> nunca era executado. CORRIGIDO (usuário moveu o
+   `end` pro final do arquivo).
+5. EducationalInstitute ganhou has_many :students, through:
+   :enrolloments, para permitir listar alunos de uma instituição.
+
+==================================================
+BUGS AINDA NÃO CORRIGIDOS (por prioridade)
+==================================================
+BLOQUEANTES (crasham a API):
+
+1. Tabela `enrolloments` NÃO TEM as colunas student_id e
+   educational_institute_id no banco, mas o model tem
+   belongs_to :student / belongs_to :educational_institute.
+   Toda criação de matrícula falha.
+   -> Solução em andamento: editar
+      db/migrate/20260813130558_create_enrolloments.rb para:
+        t.references :student, foreign_key: true
+        t.references :educational_institute, foreign_key: true
+        t.decimal :full_price          (renomear de full_price_course)
+        t.integer :number_invoices     (era decimal)
+        t.integer :invoice_due_date    (era decimal)
+        t.string :name_course
+      Depois rodar: bin/rails db:migrate:redo VERSION=20260813130558
+      (PASSO EM QUE PARAMOS - ainda não confirmado se foi feito)
+
+2. Enrolloment model usa "full_price" no código (validates e
+   full_price / number_invoices) mas a coluna do banco se chamava
+   full_price_course. Resolvido junto com o item 1 (renomeando a
+   coluna na migration).
+
+3. Tabela `invoices` NÃO TEM as colunas enrolloment_id nem due_date
+   (data de vencimento), mas o model tem belongs_to :enrolloment e
+   valida :_invoice_due_date (nome de coluna que nem existe).
+   -> Precisa editar db/migrate/20260813131307_create_invoices.rb
+      pra adicionar:
+        t.references :enrolloment, foreign_key: true
+        t.date :due_date
+        t.decimal :price_invoice     (era string)
+        t.string :invoice_status, default: "aberta"
+      e depois rodar db:migrate:redo com a VERSION dessa migration.
+      Também corrigir o model Invoice para usar os nomes certos:
+      due_date (não _invoice_due_date), invoice_status
+      (não status_invoice).
+
+4. enrolloments_controller.rb (enrolloment_params) não libera
+   student_id nem educational_institute_id -> mesmo corrigindo o
+   banco, a API não aceitaria esses IDs no request. Precisa adicionar
+   ambos na lista de params permitidos.
+
+5. Métodos "imudavel" (em Student, Invoice, EducationalInstitute) têm
+   erro de digitação (_chaged? deveria ser _changed?) e NUNCA são
+   chamados (não estão registrados como before_save/validate). Hoje
+   são código morto; se forem plugados vão quebrar por causa do typo.
+   Decidir: corrigir e plugar, ou remover.
+
+REGRAS DE NEGÓCIO FALTANDO (depois dos bugs acima):
+
+6. Cálculo de data de vencimento das faturas: hoje o create_invoices
+   só faz "invoice_due_date + i.months", direto, sem a lógica do
+   desafio (comparar dia_vencimento com o dia atual do mês pra decidir
+   se a 1a fatura é neste mês ou no próximo). Precisa reescrever esse
+   método.
+
+7. Falta validar que a soma de todas as faturas de uma matrícula é
+   igual ao valor total da matrícula.
+
+8. Faltam validações de faixa: valor total > 0, quantidade de faturas
+   >= 1, dia de vencimento entre 1 e 31.
+
+9. Status da fatura hoje só aceita 'aberta' (inclusion: ['aberta']).
+   Falta aceitar 'atrasada' e 'paga', e falta valor default 'aberta'
+   (nem a validação nem a coluna do banco têm default hoje).
+
+10. CPF/CNPJ "somente numérico" hoje é feito via normalização (remove
+    letras/símbolos silenciosamente) em vez de validação (rejeitar
+    se vier algo não-numérico). Se quiser seguir o desafio à risca,
+    trocar para validação com format/regex.
+
+==================================================
+ONDE PARAMOS (retomar por aqui)
+==================================================
+Estávamos no passo 1 dos bugs bloqueantes: editar a migration
+create_enrolloments.rb pra adicionar as referências de student e
+educational_institute, e corrigir os tipos/nomes de coluna. O
+usuário ainda não confirmou se rodou o db:migrate:redo.
+
+Depois disso, seguir em ordem:
+1. Confirmar migration de enrolloments rodou OK
+2. Liberar student_id/educational_institute_id no controller
+3. Fazer o mesmo processo pra invoices (colunas enrolloment_id,
+   due_date, tipos certos)
+4. Corrigir nomes no model Invoice (due_date, invoice_status)
+5. Implementar a lógica correta de cálculo de data de vencimento
+6. Implementar validação de soma das faturas = valor total
+7. Adicionar validações de faixa (>0, >=1, 1-31)
+8. Adicionar status atrasada/paga com default aberta
+
+==================================================
+COMANDOS ÚTEIS USADOS NESTE PROJETO
+==================================================
+- Rodar servidor:            bin/rails s  (porta 3000)
+- Ver processo numa porta:   ss -ltnp | grep :3000
+- Matar processo:             kill <PID>
+- Rodar migrations pendentes: bin/rails db:migrate
+- Ver status das migrations:  bin/rails db:migrate:status
+- Refazer 1 migration específica (rollback + up):
+                               bin/rails db:migrate:redo VERSION=<id>
+- Console Rails (criar dados na mão): bin/rails c
+- Ver log de erro:            tail -n 60 log/development.log
+
+==================================================
+BODY JSON PARA TESTAR NO INSOMNIA (POST /students)
+==================================================
+{
+  "student": {
+    "name": "joao da silva",
+    "cpf": "12345678901",
+    "date_of_birth": "2005-05-20",
+    "cell_number": "11987654321",
+    "gender": "male",
+    "method_of_payment": "pix"
+  }
+}

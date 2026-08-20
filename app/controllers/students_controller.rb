@@ -3,9 +3,11 @@ class StudentsController < ApplicationController
 
   # GET /students
   def index
-    @students = Student.all
-    @students = @students.where("name LIKE ?", "%#{params[:name].downcase}%") if params[:name].present?
-
+    if params[:name].present?
+      @students = Student.where("name LIKE ?", "%#{params[:name].downcase}%")
+    else
+      @students = Student.all
+    end
 
     render json: @students
   end
