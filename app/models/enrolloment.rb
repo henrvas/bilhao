@@ -19,8 +19,8 @@ class Enrolloment < ApplicationRecord
       Invoice.create!(
         enrolloment: self,
         price_invoice: invoice_value,
-        status_invoice: 'aberta',
-        invoice_due_date: due_date + i.months
+        invoice_status: 'aberta',
+        invoice_due_date: due_date
       )
     end
   end

@@ -46,6 +46,6 @@ class EnrollomentsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def enrolloment_params
-      params.expect(enrolloment: [ :full_price_course, :number_invoices, :invoice_due_date, :name_course ])
+      params.expect(enrolloment: [ :full_price_course, :number_invoices, :invoice_due_date, :name_course, :student_id, :educational_institute_id ])
     end
 end
