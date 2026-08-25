@@ -1,5 +1,5 @@
 class InvoicesController < ApplicationController
-  before_action :set_invoice, only: %i[ show update destroy ]
+  before_action :set_invoice, only: %i[ show update destroy pagar ]
 
   # GET /invoices
   def index
@@ -33,6 +33,15 @@ class InvoicesController < ApplicationController
     end
   end
 
+  # PATCH /invoices/1/pagar
+  def pagar
+    if @invoice.confirmar_pagamento!
+      render json: @invoice
+    else
+      render json: @invoice.errors, status: :unprocessable_content
+    end
+  end
+
   # DELETE /invoices/1
   def destroy
     @invoice.destroy!
@@ -46,6 +55,6 @@ class InvoicesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def invoice_params
-      params.expect(invoice: [ :price_invoice, :invoice_status ])
+      params.expect(invoice: [ :price_invoice ])
     end
 end

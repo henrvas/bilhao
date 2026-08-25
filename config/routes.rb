@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  resources :invoices
+  resources :invoices do
+    member do
+      patch :pagar
+    end
+  end
   resources :enrolloments
   resources :students
   resources :educational_institutes
