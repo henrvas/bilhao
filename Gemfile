@@ -35,6 +35,9 @@ gem "image_processing", "~> 1.2"
 # Validate CPF/CNPJ with real check-digit logic [https://github.com/tapajos/cpf_cnpj]
 gem "cpf_cnpj"
 
+# State machines for Active Record [https://github.com/aasm/aasm]
+gem "aasm"
+
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 
