@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_135512) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_170828) do
   create_table "educational_institutes", force: :cascade do |t|
     t.string "cnpj"
     t.datetime "created_at", null: false
@@ -54,7 +54,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_135512) do
   end
 
   create_table "students", force: :cascade do |t|
-    t.decimal "cell_number"
+    t.string "cell_number"
     t.string "cpf"
     t.datetime "created_at", null: false
     t.date "date_of_birth"

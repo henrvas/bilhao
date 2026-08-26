@@ -1,8 +1,8 @@
 class Invoice < ApplicationRecord
   include AASM
 
-  # taxa de juros ao dia aplicada sobre fatura vencida e não paga (placeholder até o valor de negócio ser definido)
-  JUROS_DIARIO = 0.001.to_d
+  # taxa de juros ao dia aplicada sobre fatura vencida e não paga
+  JUROS_DIARIO = 0.1.to_d
 
   belongs_to :enrolloment
 
@@ -48,8 +48,8 @@ class Invoice < ApplicationRecord
 
   private
 
-  # como não há uma rotina/job rodando em background, a fatura "descobre" que está
-  # atrasada sempre que é carregada do banco (ex: index/show) e se atualiza sozinha.
+  # Nao tem um job rodando para verificar atrasos,
+  # so vai começar a contar juros quando o atualizar o status da fatura ou quando a fatura for carregada do banco de dados
   def verificar_atraso
     return if paid_at.present?
     return unless invoice_due_date
