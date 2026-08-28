@@ -2,7 +2,7 @@ class Invoice < ApplicationRecord
   include AASM
 
   # taxa de juros ao dia aplicada sobre fatura vencida e não paga
-  JUROS_DIARIO = 0.1.to_d
+  JUROS_DIARIO = 0.01.to_d
 
   belongs_to :enrolloment
 
@@ -37,9 +37,6 @@ class Invoice < ApplicationRecord
   def imudavel
     if price_invoice_changed?
       errors.add(:price_invoice, "não pode ser alterado")
-    end
-    if invoice_due_date_changed?
-      errors.add(:invoice_due_date, "não pode ser alterado")
     end
     if enrolloment_id_changed?
       errors.add(:enrolloment_id, "não pode ser alterado")
